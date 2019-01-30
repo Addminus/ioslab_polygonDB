@@ -6,8 +6,10 @@ import psycopg2
 from postgis import LineString
 from postgis.psycopg import register
 import time
+from random import randint
 
-time.sleep(5)
+
+time.sleep(10)
 
 #declare Default starting values
 startLon = 52.509  #y in 2d
@@ -61,18 +63,17 @@ connection = psycopg2.connect(host="postgis", port="5432", database="gis", user=
 cursor = connection.cursor()
 
 cursor.execute("DROP TABLE IF EXISTS berlin_polygons")
-cursor.execute("CREATE TABLE berlin_polygons (id SERIAL PRIMARY KEY, outline GEOGRAPHY)")
+cursor.execute("CREATE TABLE berlin_polygons (id SERIAL PRIMARY KEY, outline GEOGRAPHY, pollution INTEGER NOT NULL)")
 cursor.execute("CREATE INDEX polygon_index ON berlin_polygons USING GIST(outline)")
 connection.commit()
 
 for string in polyWKTList:
-    print(string)
-    cursor.execute("INSERT INTO berlin_polygons (outline) VALUES (ST_PolygonFromText('{}'))".format(string))
-
+    ranPoll = randint(1, 10)
+    cursor.execute("INSERT INTO berlin_polygons (outline,pollution) VALUES (ST_PolygonFromText('{0}'), {1})".format(string,ranPoll))
 connection.commit()
 
 
-cursor.execute("SELECT ST_AsText(outline) FROM berlin_polygons")
+cursor.execute("SELECT ST_AsText(outline), pollution FROM berlin_polygons")
 for geo in cursor:
     print(geo)
 

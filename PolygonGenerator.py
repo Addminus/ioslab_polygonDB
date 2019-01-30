@@ -64,10 +64,12 @@ cursor.execute("DROP TABLE IF EXISTS berlin_polygons")
 cursor.execute("CREATE TABLE berlin_polygons (id SERIAL PRIMARY KEY, outline GEOGRAPHY)")
 cursor.execute("CREATE INDEX polygon_index ON berlin_polygons USING GIST(outline)")
 connection.commit()
+
 for string in polyWKTList:
     print(string)
     cursor.execute("INSERT INTO berlin_polygons (outline) VALUES (ST_PolygonFromText('{}'))".format(string))
 
+connection.commit()
 
 
 cursor.execute("SELECT ST_AsText(outline) FROM berlin_polygons")

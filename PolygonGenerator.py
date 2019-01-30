@@ -73,8 +73,8 @@ for string in polyWKTList:
 connection.commit()
 
 
-cursor.execute("SELECT ST_AsText(outline), pollution FROM berlin_polygons")
-for geo in cursor:
-    print(geo)
+# cursor.execute("SELECT ST_AsText(outline), pollution FROM berlin_polygons")
+# for geo in cursor:
+#     print(geo)
 
 

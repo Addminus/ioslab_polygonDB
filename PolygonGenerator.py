@@ -12,10 +12,10 @@ from random import randint
 time.sleep(10)
 
 #declare Default starting values
-startLon = 52.509  #y in 2d
-startLat = 13.376 #x in 2d
+startLon = 52.503  #y in 2d
+startLat = 13.350 #x in 2d
 increment = 0.001 
-rasterCount = 50
+rasterCount = 500
 pointMatrix = []
 
 
@@ -73,8 +73,14 @@ for string in polyWKTList:
 connection.commit()
 
 
-# cursor.execute("SELECT ST_AsText(outline), pollution FROM berlin_polygons")
+
+cursor.execute("UPDATE berlin_polygons SET outline=ST_Buffer(outline, 0.0)")
+connection.commit()
+
+# cursor.execute("SELECT ST_AsGeoJson(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)', 4326))) as geometry, a.pollution FROM berlin_polygons a WHERE not ST_IsEmpty(ST_AsText(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)',4326))))")
 # for geo in cursor:
 #     print(geo)
+
+
 
 

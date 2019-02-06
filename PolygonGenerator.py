@@ -15,7 +15,7 @@ time.sleep(10)
 startLon = 52.503  #y in 2d
 startLat = 13.350 #x in 2d
 increment = 0.001 
-rasterCount = 500
+rasterCount = 250
 pointMatrix = []
 
 

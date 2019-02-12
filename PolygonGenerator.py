@@ -9,7 +9,7 @@ import time
 from random import randint
 
 
-time.sleep(10)
+# time.sleep(10)
 
 #declare Default starting values
 startLon = 52.503  #y in 2d
@@ -59,7 +59,16 @@ for (yIndex, xArray) in enumerate(pointMatrix):
 
 
 #write polygons to postgis
-connection = psycopg2.connect(host="postgis", port="5432", database="gis", user="docker", password="docker")
+print("connecting to db")
+connected = False
+while not connected:
+    try:
+        connection = psycopg2.connect(host="postgis", port="5432", database="gis", user="docker", password="docker")
+        connected = True
+    except psycopg2.Error as e:
+        print("error while trying to connect to database, retrying...")
+        time.sleep(1)
+print("connected to db, starting to insert polygons...")
 cursor = connection.cursor()
 
 cursor.execute("DROP TABLE IF EXISTS berlin_polygons")
@@ -77,10 +86,8 @@ connection.commit()
 cursor.execute("UPDATE berlin_polygons SET outline=ST_Buffer(outline, 0.0)")
 connection.commit()
 
+cursor.execute("SELECT COUNT(id) from berlin_polygons")
+print("database populated, number of polygons : " + str(cursor.fetchone()))
 # cursor.execute("SELECT ST_AsGeoJson(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)', 4326))) as geometry, a.pollution FROM berlin_polygons a WHERE not ST_IsEmpty(ST_AsText(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)',4326))))")
 # for geo in cursor:
 #     print(geo)
-
-
-
-

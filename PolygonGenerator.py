@@ -7,15 +7,18 @@ from postgis import LineString
 from postgis.psycopg import register
 import time
 from random import randint
-
+import json
 
 # time.sleep(10)
 
 #declare Default starting values
-startLon = 52.503  #y in 2d
-startLat = 13.350 #x in 2d
-increment = 0.001 
-rasterCount = 250
+# startLon = 52.503  #y in 2d
+# startLat = 13.350 #x in 2d
+startLat = 52.453
+startLon = 13.290
+
+increment = 0.005
+rasterCount = 50
 pointMatrix = []
 
 
@@ -31,31 +34,33 @@ for y in range(0, rasterCount):
         newLon = startLon + (y * increment)
     for x in range(0, rasterCount):
         newLat = startLat + ( x* increment)
-        newPoint =[newLon, newLat]
+        newPoint = [newLon, newLat]
         xArray.append(newPoint)
     pointMatrix.append(xArray)
-
+print("point matrix : " + str(pointMatrix))
 
 #create polygons from raster for postgis db
 polyWKTList = []
 for (yIndex, xArray) in enumerate(pointMatrix):
-    if(yIndex is len(pointMatrix)-1):  
+    if(yIndex is len(pointMatrix)-1):
         pass
-    else: 
+    else:
         for (xIndex, point) in enumerate(xArray):
-            if(xIndex is len(xArray)-1):  
+            if(xIndex is len(xArray)-1):
                 pass
-            else: 
+            else:
                 cornerBL = pointMatrix[yIndex][xIndex]
                 cornerBR = pointMatrix[yIndex][xIndex + 1]
                 cornerTL = pointMatrix[yIndex + 1][xIndex]
                 cornerTR = pointMatrix[yIndex + 1][xIndex + 1]
-                polyWKT = "POLYGON ([(%s; %s; %s; %s; %s)])"%(cornerBL, cornerBR, cornerTL, cornerTR, cornerBL)
+                # polyWKT = "POLYGON ([(%s; %s; %s; %s; %s)])"%(cornerBL, cornerBR, cornerTL, cornerTR, cornerBL)
+                polyWKT = "POLYGON ([(%s; %s; %s; %s; %s)])"%(cornerBL, cornerTL, cornerTR, cornerBR, cornerBL)
                 polyWKT = polyWKT.replace("[", "")
                 polyWKT = polyWKT.replace("]", "")
                 polyWKT = polyWKT.replace(",", "")
                 polyWKT = polyWKT.replace(";", ",")
                 polyWKTList.append(polyWKT)
+                print(polyWKT)
 
 
 #write polygons to postgis
@@ -81,13 +86,22 @@ for string in polyWKTList:
     cursor.execute("INSERT INTO berlin_polygons (outline,pollution) VALUES (ST_PolygonFromText('{0}'), {1})".format(string,ranPoll))
 connection.commit()
 
-
-
 cursor.execute("UPDATE berlin_polygons SET outline=ST_Buffer(outline, 0.0)")
 connection.commit()
 
 cursor.execute("SELECT COUNT(id) from berlin_polygons")
 print("database populated, number of polygons : " + str(cursor.fetchone()))
-# cursor.execute("SELECT ST_AsGeoJson(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)', 4326))) as geometry, a.pollution FROM berlin_polygons a WHERE not ST_IsEmpty(ST_AsText(ST_intersection (a.outline, ST_GeomFromText('LINESTRING(52.526726 13.40781,52.52696 13.408001)',4326))))")
+
+# export to json file
+# jsonGeom = {
+#     "type": "GeometryCollection",
+#     "geometries": []
+# }
 # for geo in cursor:
-#     print(geo)
+#     jsonGeom["geometries"].append(json.loads(geo[0]))
+
+# f = open("demofile.json", "w")
+
+# f.write(json.dumps(jsonGeom, separators=(',',':')))
+# print(json.dumps(jsonGeom, separators=(',',':')))
+# print("bye :)")
